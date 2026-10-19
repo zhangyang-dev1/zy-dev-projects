@@ -1,0 +1,82 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.9, pytest-9.1.1, pluggy-1.6.0 -- E:\lands\pet-hospital-mcp-teaching\pet-hospital-mcp\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: E:\lands\pet-hospital-mcp-teaching\pet-hospital-mcp
+configfile: pyproject.toml
+plugins: anyio-4.15.1, asyncio-1.4.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 1 item
+
+tests/test_direct.py::test_success_null_records_and_charges FAILED       [100%]
+
+================================== FAILURES ===================================
+____________________ test_success_null_records_and_charges ____________________
+
+server = <pet_hospital_mcp.server.PetHospitalMCPServer object at 0x000001F9B8689550>
+mock_backend = <tests.helpers.MockBackend object at 0x000001F9B8688590>
+
+    @pytest.mark.asyncio
+    async def test_success_null_records_and_charges(server, mock_backend):
+        pet = sample_pet(records=None, charges=None)
+    
+        async def _handler(_req):
+            return httpx.Response(200, json=success_payload(items=[pet]))
+    
+        mock_backend.handler = _handler
+        result = await call_list_pets_direct(server, {})
+        assert not _is_error(result), f"{getattr(result, 'structured_content', None)}"
+        item = result.structured_content["items"][0]
+        # null 归一化为空数组
+>       assert item["records"] == []
+E       AssertionError: assert [{'id': 'r-00...': '感冒', ...}] == []
+E         
+E         Left contains one more item: {'id': 'r-001', 'visitDate': '2026-07-20', 'doctor': '李医生', 'diagnosis': '感冒', ...}
+E         
+E         Full diff:
+E         - []
+E         + [
+E         +     {
+E         +         'id': 'r-001',
+E         +         'visitDate': '2026-07-20',
+E         +         'doctor': '李医生',
+E         +         'diagnosis': '感冒',
+E         +         'symptoms': '咳嗽',
+E         +         'treatment': '对症治疗',
+E         +         'prescription': [
+E         +             '药品A',
+E         +         ],
+E         +         'weightKg': 18.5,
+E         +         'temperature': 38.7,
+E         +         'followUp': '三天后复诊',
+E         +         'charge': 300.0,
+E         +         'createdAt': '2026-07-20T10:00:00Z',
+E         +     },
+E         + ]
+
+tests\test_direct.py:365: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_direct.py::test_success_null_records_and_charges - AssertionError: assert [{'id': 'r-00...': '感冒', ...}] == []
+  
+  Left contains one more item: {'id': 'r-001', 'visitDate': '2026-07-20', 'doctor': '李医生', 'diagnosis': '感冒', ...}
+  
+  Full diff:
+  - []
+  + [
+  +     {
+  +         'id': 'r-001',
+  +         'visitDate': '2026-07-20',
+  +         'doctor': '李医生',
+  +         'diagnosis': '感冒',
+  +         'symptoms': '咳嗽',
+  +         'treatment': '对症治疗',
+  +         'prescription': [
+  +             '药品A',
+  +         ],
+  +         'weightKg': 18.5,
+  +         'temperature': 38.7,
+  +         'followUp': '三天后复诊',
+  +         'charge': 300.0,
+  +         'createdAt': '2026-07-20T10:00:00Z',
+  +     },
+  + ]
+============================== 1 failed in 0.22s ==============================

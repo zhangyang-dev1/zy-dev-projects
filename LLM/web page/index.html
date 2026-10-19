@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>AnythingLLM 文档上传</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; color: #222; }
+  h1 { font-size: 20px; }
+  .row { margin: 16px 0; }
+  select, input[type=file] { padding: 8px; font-size: 14px; }
+  select { width: 100%; }
+  button { padding: 10px 20px; font-size: 15px; cursor: pointer; background: #2563eb; color: #fff; border: 0; border-radius: 6px; }
+  button:disabled { background: #93c5fd; cursor: wait; }
+  #status { margin-top: 16px; padding: 12px; background: #f3f4f6; border-radius: 6px; white-space: pre-wrap; word-break: break-all; font-size: 14px; }
+  #count { color: #6b7280; font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>AnythingLLM 文档上传并向量化</h1>
+
+<div class="row">
+  <label>目标工作区</label>
+  <select id="ws"></select>
+</div>
+
+<div class="row">
+  <input type="file" id="file" />
+</div>
+
+<div class="row">
+  <button id="btn" disabled>上传并向量化</button>
+</div>
+
+<div id="count"></div>
+<div id="status">加载中…</div>
+
+<script>
+const status = document.getElementById('status');
+const btn = document.getElementById('btn');
+const wsSel = document.getElementById('ws');
+const DEFAULT_SLUG = '310d670a-98c4-47e1-bbfa-e1a8c095ef92';
+
+async function api(path, opts) {
+  const r = await fetch(path, opts);
+  return { ok: r.ok, data: await r.json().catch(() => ({})) };
+}
+
+async function vectorCount() {
+  const { data } = await api('/api/v1/system/vector-count');
+  return data?.vectorCount ?? data?.count ?? '?';
+}
+
+(async () => {
+  try {
+    const [{ data }, before] = await Promise.all([api('/api/v1/workspaces'), vectorCount()]);
+    const list = data.workspaces || [];
+    wsSel.innerHTML = list.map(w =>
+      `<option value="${w.slug}">${w.name} (${w.slug})</option>`).join('');
+    if (DEFAULT_SLUG && list.some(w => w.slug === DEFAULT_SLUG)) wsSel.value = DEFAULT_SLUG;
+    document.getElementById('count').textContent = `当前向量总数：${before}`;
+    if (!list.length) { status.textContent = '没有可用工作区'; return; }
+    status.textContent = '就绪，选择文件后点击上传。';
+    btn.disabled = false;
+  } catch (e) {
+    status.textContent = '初始化失败：' + e.message;
+  }
+})();
+
+btn.addEventListener('click', async () => {
+  const f = document.getElementById('file').files[0];
+  if (!f) { status.textContent = '请先选择文件'; return; }
+
+  const before = await vectorCount();
+  btn.disabled = true;
+  btn.textContent = '上传中…';
+  status.textContent = '正在上传并解析嵌入，请稍候…';
+
+  const fd = new FormData();
+  fd.append('file', f);
+  fd.append('addToWorkspaces', wsSel.value);
+
+  try {
+    const { ok, data } = await api('/api/v1/document/upload', { method: 'POST', body: fd });
+    const after = await vectorCount();
+    document.getElementById('count').textContent = `向量总数：${before} → ${after}`;
+
+    if (ok && data.success) {
+      const names = (data.documents || []).map(d => '· ' + (d.title || d.name)).join('\n');
+      status.textContent = '上传成功，已向量化：\n' + (names || '(无返回文档)');
+    } else {
+      status.textContent = '失败：' + (data.error || JSON.stringify(data));
+    }
+  } catch (e) {
+    status.textContent = '请求出错：' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '上传并向量化';
+  }
+});
+</script>
+</body>
+</html>

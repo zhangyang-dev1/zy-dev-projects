@@ -1,0 +1,7 @@
+Metadata-Version: 2.4
+Name: anythingllm-mcp
+Version: 0.1.0
+Summary: MCP Server for AnythingLLM
+Requires-Python: >=3.10
+Requires-Dist: mcp[cli]>=2.0
+Requires-Dist: httpx

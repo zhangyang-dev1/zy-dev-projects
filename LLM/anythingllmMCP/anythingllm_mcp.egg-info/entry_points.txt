@@ -1,0 +1,2 @@
+[console_scripts]
+anythingllm-mcp = server:main
