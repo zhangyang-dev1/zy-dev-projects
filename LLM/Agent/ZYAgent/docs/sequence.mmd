@@ -1,0 +1,42 @@
+%% ZYAgent 单轮会话时序图（含工具调用与流式输出）
+%% 展示 UI / AgentEngine / LLM 客户端 / 工具注册表 的事件流协作
+
+sequenceDiagram
+    autonumber
+    participant UI as 前端（tui/cli/web/…）
+    participant ENG as core.AgentEngine
+    participant LLM as LLMClient（SSE）
+    participant TOOL as ToolRegistry
+
+    UI->>ENG: ask(question)
+    ENG-->>UI: TurnStarted(question)
+
+    loop 直到无工具调用（上限 max_tool_rounds）
+        alt 流式（默认）
+            ENG->>LLM: stream(messages, tools)
+            loop 每个 SSE 分片
+                LLM-->>ENG: TextDelta / tool_calls 分片
+                ENG-->>UI: AssistantDelta(text)
+            end
+            LLM-->>ENG: ReplyArrived（汇总 content + tool_calls）
+        else 非流式
+            ENG->>LLM: complete(messages, tools)
+            LLM-->>ENG: LLMReply(message)
+        end
+        ENG-->>UI: AssistantMessage(权威全文)
+
+        opt message 含 tool_calls
+            loop 每个 tool_call
+                ENG-->>UI: ToolCallStarted(id, name, args)
+                ENG->>TOOL: execute(name, args)
+                TOOL-->>ENG: ToolResult(ok, output)（错误即数据）
+                ENG-->>UI: ToolCallFinished(ok, output)
+                ENG->>ENG: session.add_tool_result(id, output)
+            end
+        end
+    end
+
+    alt 请求失败 / 用户停止 / 超轮次
+        ENG-->>UI: AgentError(message)
+    end
+    ENG-->>UI: TurnFinished(answer)（任何路径都保证收尾）

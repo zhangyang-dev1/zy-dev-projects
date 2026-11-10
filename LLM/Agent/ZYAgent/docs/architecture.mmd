@@ -1,0 +1,81 @@
+%% ZYAgent 代码架构图（core 与 UI 分离）
+%% 前端层可任意扩展：tui / cli / web / desktop / mobile
+
+flowchart TD
+
+    %% ==================== 前端层 ====================
+    subgraph UI["前端层（只依赖 core 公共 API，互相独立）"]
+        direction LR
+        TUI["tui/ · Textual 终端界面<br/>app.py 事件渲染 + asyncio.to_thread 步进"]
+        CLI["cli/ · 控制台界面<br/>保留原 chat_files.py 体验"]
+        WEB["web/（预留）"]
+        DESK["desktop/（预留）"]
+        MOB["mobile/（预留）"]
+    end
+
+    %% ==================== 通信契约 ====================
+    CONTRACT[/"契约：AgentEngine.ask() → AgentEvent 事件流<br/>TurnStarted · AssistantDelta · AssistantMessage<br/>ToolCallStarted/Finished · AgentError · TurnFinished<br/>（frozen dataclass，to_dict() 可 JSON 序列化）"/]
+
+    TUI --> CONTRACT
+    CLI --> CONTRACT
+    WEB -.-> CONTRACT
+    DESK -.-> CONTRACT
+    MOB -.-> CONTRACT
+
+    %% ==================== core 分层 ====================
+    subgraph CORE["core/（UI 无关，零第三方依赖）"]
+        direction TB
+
+        subgraph ORCH["编排层"]
+            ENGINE["engine.py · AgentEngine<br/>提问 → LLM → 工具调用 → 最终回答<br/>错误即数据 · 取消检查 · 轮次上限"]
+        end
+
+        subgraph DOMAIN["领域层"]
+            SESSION["session.py · ConversationSession<br/>user / assistant / tool 消息历史"]
+        end
+
+        subgraph RESOURCE["资源层"]
+            direction LR
+            subgraph LLM["llm/"]
+                PORT["base.py · LLMClient 端口<br/>complete / stream"]
+                ADAPTER["openai_compat.py · 适配器<br/>SSE 流式 + tool_calls 分片合并"]
+                PORT --> ADAPTER
+            end
+            subgraph TOOLS["tools/"]
+                REG["base.py · ToolSpec / ToolRegistry<br/>声明即契约 · 按名路由 · 统一异常兜底"]
+                IMPL["system.py(2) + files.py(10)<br/>闰年/日期 · 文件系统 CRUD + 防护"]
+                REG --> IMPL
+            end
+        end
+
+        subgraph BASE["基础层"]
+            CONFIG["config.py · LLMConfig<br/>config.ini 加载"]
+            EVENTS["events.py · AgentEvent 家族<br/>core→UI 唯一通信协议"]
+        end
+
+        ENGINE --> SESSION
+        ENGINE --> PORT
+        ENGINE --> REG
+        ENGINE --> EVENTS
+        SESSION --> CONFIG
+    end
+
+    CONTRACT --> ENGINE
+
+    %% ==================== 外部系统 ====================
+    API[("DeepSeek API<br/>OpenAI 兼容 /chat/completions")]
+    FS[("本地文件系统 / 系统命令")]
+
+    ADAPTER <--> API
+    IMPL --> FS
+
+    %% ==================== 样式 ====================
+    classDef ui fill:#e3f2fd,stroke:#1565c0,color:#0d47a1
+    classDef contract fill:#fff8e1,stroke:#ef6c00,color:#e65100
+    classDef core fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
+    classDef ext fill:#f3e5f5,stroke:#6a1b9a,color:#4a148c
+
+    class TUI,CLI,WEB,DESK,MOB ui
+    class CONTRACT,EVENTS contract
+    class ENGINE,SESSION,PORT,ADAPTER,REG,IMPL,CONFIG core
+    class API,FS ext

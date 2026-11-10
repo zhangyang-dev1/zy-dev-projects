@@ -1,0 +1,244 @@
+/* ZYAgent TUI 样式（Textual CSS） */
+
+Screen {
+    layout: vertical;
+    background: $surface;
+}
+
+/* ---------------- 主区域：聊天 + 侧栏 ---------------- */
+#main {
+    height: 1fr;
+}
+
+#chat {
+    width: 3fr;
+    padding: 1 2;
+    background: $background;
+}
+
+#sidebar {
+    width: 36;
+    min-width: 24;
+    padding: 1;
+    background: $panel;
+    border-left: solid $accent-darken-1;
+}
+
+#sidebar.hidden {
+    display: none;
+}
+
+#side-head {
+    height: auto;
+    margin-bottom: 1;
+    text-style: bold;
+    color: $accent;
+}
+
+#side-stats {
+    height: auto;
+    margin-bottom: 1;
+    color: $text-muted;
+}
+
+#side-tools-title {
+    height: auto;
+    margin-bottom: 1;
+    text-style: bold;
+    color: $text-muted;
+}
+
+#side-mcp-title {
+    height: auto;
+    margin-top: 1;
+    text-style: bold;
+    color: $text-muted;
+}
+
+#mcp-area {
+    height: auto;
+    margin-bottom: 1;
+}
+
+.tool-item {
+    height: auto;
+}
+
+/* ---------------- 状态栏 ---------------- */
+#statusbar {
+    height: 1;
+    padding: 0 2;
+    background: $panel;
+    color: $text-muted;
+}
+
+/* ---------------- 消息 ---------------- */
+.msg-row {
+    width: 100%;
+    height: auto;
+    margin: 0 0 1 0;
+}
+
+.msg-row.user {
+    align-horizontal: right;
+}
+
+/* 气泡用确定宽度（100% + max-width 上限）：
+   auto 宽度协商在 Textual 中不可靠（shrink=True 会把气泡收缩成标签宽度，
+   正文呈"竖排"），确定宽度下 Static 按宽度自然折行。 */
+.bubble {
+    width: 100%;
+    max-width: 85%;
+    height: auto;
+    padding: 1 2;
+}
+
+.bubble-label {
+    width: 100%;
+    height: auto;
+    text-style: bold;
+    color: $accent;
+}
+
+.bubble-text {
+    width: 100%;
+    height: auto;
+}
+
+.bubble.user {
+    background: $accent-darken-2;
+    color: $text;
+}
+
+.bubble.user .bubble-label {
+    color: $text;
+}
+
+.bubble.assistant {
+    background: $boost;
+    border: round $accent-darken-1;
+}
+
+.bubble.error {
+    width: 100%;
+    max-width: 100%;
+    background: $error-darken-2;
+    color: $text;
+    border: round $error;
+}
+
+.bubble.error .bubble-label {
+    color: $text;
+}
+
+.bubble.info {
+    width: 100%;
+    max-width: 100%;
+    background: $panel;
+    border-left: tall $accent;
+}
+
+/* ---------------- 工具卡片 ---------------- */
+.tool-card {
+    width: 100%;
+    height: auto;
+    margin: 0 0 1 0;
+    padding: 0 1;
+    border-left: tall $warning;
+    background: $boost;
+}
+
+.tool-card.running {
+    color: $text-muted;
+}
+
+.tool-card.ok {
+    border-left: tall $success;
+}
+
+.tool-card.fail {
+    border-left: tall $error;
+}
+
+.tool-head {
+    height: auto;
+    text-style: bold;
+}
+
+.tool-body {
+    height: auto;
+    margin-top: 1;
+    color: $text-muted;
+}
+
+/* ---------------- 上下文占用条 ---------------- */
+#contextbar {
+    height: 1;
+    padding: 0 2;
+    background: $boost;
+}
+
+/* ---------------- 斜杠命令补全面板 ---------------- */
+#palette {
+    height: auto;
+    max-height: 8;
+    padding: 0 2;
+    background: $panel-darken-1;
+    border-top: solid $accent-darken-1;
+    display: none;
+}
+
+/* ---------------- 输入区 ---------------- */
+#prompt {
+    height: 3;
+    margin: 0 1;
+    background: $panel;
+}
+
+/* ---------------- 恢复会话弹窗 ---------------- */
+ResumeScreen {
+    align: center middle;
+    background: $background 60%;
+}
+
+#resume-box {
+    width: 84;
+    max-width: 94%;
+    height: auto;
+    max-height: 80%;
+    padding: 1 2;
+    background: $surface;
+    border: round $accent;
+}
+
+.resume-title {
+    margin-bottom: 1;
+    text-style: bold;
+    color: $accent;
+}
+
+#session-list {
+    height: auto;
+    max-height: 20;
+}
+
+/* ---------------- 帮助弹窗 ---------------- */
+HelpScreen {
+    align: center middle;
+    background: $background 60%;
+}
+
+#help-box {
+    width: 74;
+    max-width: 92%;
+    height: auto;
+    max-height: 90%;
+    padding: 1 2;
+    background: $surface;
+    border: round $accent;
+}
+
+#help-box .hint {
+    color: $text-muted;
+    text-style: italic;
+}

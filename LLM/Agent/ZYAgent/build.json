@@ -1,0 +1,38 @@
+{
+  "entry": "main.py",
+  "name": "ZYAgent",
+  "display_name": "ZYAgent",
+  "version": "1.0.0",
+  "publisher": "张洋",
+  "description": "基于大语言模型的智能Agent应用，提供工具调用、任务自主规划与执行能力",
+  "pyinstaller": {
+    "onefile": false,
+    "windowed": false,
+    "clean": true,
+    "noconfirm": true,
+    "add_data": [
+      "tui/styles.tcss:tui",
+      "config.ini:."
+    ],
+    "hidden_import": [
+      "trafilatura"
+    ],
+    "collect_submodules": [
+      "textual",
+      "rich"
+    ]
+  },
+  "platforms": {
+    "windows": {
+      "inno_setup": {
+        "create_desktop_icon": true,
+        "create_start_menu_icon": true,
+        "allow_run_after_install": true,
+        "languages": [
+          "chinesesimplified",
+          "english"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,4 @@
+textual>=8.0
+trafilatura>=2.0
+mcp>=2.0
+PySide6>=6.6

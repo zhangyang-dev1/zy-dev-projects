@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+# 桌面端依赖本地安装目录（PySide6 等）
+_pydeps/
+# 含 API Key，勿入库；模板见 config.example.ini
+config.ini
+
+# 上下文压缩归档（/compact 运行时生成，供 recallContext 检索）
+.agents/context/
+# 会话事件日志（/save、/new 自动保存）与导出文件
+.agents/sessions/
+.agents/exports/
